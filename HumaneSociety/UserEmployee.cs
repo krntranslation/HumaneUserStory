@@ -281,7 +281,7 @@ namespace HumaneSociety
             }
             
         }
-        private void CreateNewEmployee()
+        public void CreateNewEmployee()//made it public
         {
             Console.Clear();
             string email = UserInterface.GetStringData("email", "your");
@@ -307,7 +307,7 @@ namespace HumaneSociety
             }
         }
 
-        private void UpdateEmployeeInfo()
+        public void UpdateEmployeeInfo()//made it public
         {
             GetUserName();
             GetPassword();

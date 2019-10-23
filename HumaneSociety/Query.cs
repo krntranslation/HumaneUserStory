@@ -206,12 +206,16 @@ namespace HumaneSociety
             }
         }
 
+        private static void RetrieveEmployeeUser()
+        {
+            throw new NotImplementedException();
+        }
+
         // DONE: Animal CRUD Operations
         internal static void AddAnimal(Animal animal)
         {
             Animal animalFromDb = db.Animals.Where(a => a.AnimalId == animal.AnimalId).FirstOrDefault();
 
-            //animalFromDb.CategoryId = animal.CategoryId;
             if (animal == null)
             {
                 throw new NotImplementedException();
@@ -274,10 +278,42 @@ namespace HumaneSociety
         // TODO: Animal Multi-Trait Search
         internal static IQueryable<Animal> SearchForAnimalsByMultipleTraits(Dictionary<int, string> updates, string input) // parameter(s)?
         {
-            throw new NotImplementedException();
+            IQueryable<Animal> animalList = db.Animals;
+            foreach (KeyValuePair<int, string> update in updates)
+            {
+                switch (update.Key)
+                {
+                    case 1:
+                        animalList = animalList.Where(a => a.CategoryId == GetCategoryId(update.Value));
+                        break;
+                    case 2:
+                        animalList = animalList.Where(a => a.Name == update.Value);
+                        break;
+                    case 3:
+                        animalList = animalList.Where(a => a.Age == Convert.ToInt32(update.Value));
+                        break;
+                    case 4:
+                        animalList = animalList.Where(a => a.Demeanor == update.Value);
+                        break;
+                    case 5:
+                        animalList = animalList.Where(a => a.KidFriendly == Convert.ToBoolean(update.Value));
+                        break;
+                    case 6:
+                        animalList = animalList.Where(a => a.PetFriendly == Convert.ToBoolean(update.Value));
+                        break;
+                    case 7:
+                        animalList = animalList.Where(a => a.Weight == Convert.ToInt32(update.Value));
+                        break;
+                    case 8:
+                        animalList = animalList.Where(a => a.AnimalId == Convert.ToInt32(update.Value));
+                        break;
+                }
+
+                
+            }return animalList;
+
         }
 
-        // DONE: Misc Animal Things
         internal static int GetCategoryId(string categoryName)
         {
             if (categoryName == null)
@@ -341,18 +377,35 @@ namespace HumaneSociety
 
         internal static IQueryable<Adoption> GetPendingAdoptions()
         {
-            throw new NotImplementedException();
+            var pendingAdoptions = db.Adoptions.Where(a => a.ApprovalStatus == "Pending");
+            return pendingAdoptions;
         }
 
         internal static void UpdateAdoption(bool isAdopted, Adoption adoption)
         {
-            throw new NotImplementedException();
+            if (adoption == null)
+            {
+                throw new System.ArgumentException("Adoption not valid");
+            }
+            else
+            {
+                if (isAdopted == true)
+                {
+                    adoption.ApprovalStatus = "Approved";
+                }
+                else
+                {
+                    adoption.ApprovalStatus = "Not Approved";
+                }
+            }
         }
-
         internal static void RemoveAdoption(int animalId, int clientId)
         {
-            throw new NotImplementedException();
+            Adoption adoption = db.Adoptions.Where(a => a.AnimalId == a.AnimalId && a.ClientId == a.ClientId).FirstOrDefault();
+            db.Adoptions.DeleteOnSubmit(adoption);
+            db.SubmitChanges();
         }
+
 
         // TODO: Shots Stuff
         internal static IQueryable<AnimalShot> GetShots(Animal animal)
@@ -367,7 +420,6 @@ namespace HumaneSociety
             var animalVacination = db.Shots.Where(s => s.Name == shotName).FirstOrDefault();
             if (animalVacination == null)
             {
-                Console.WriteLine(“That shot does not exist”);
                 Shot shot = new Shot() { Name = shotName };
                 db.Shots.InsertOnSubmit(shot);
                 db.SubmitChanges();
@@ -376,6 +428,7 @@ namespace HumaneSociety
             newShot.AnimalId = animal.AnimalId;
             newShot.DateReceived = DateTime.Now;
             newShot.ShotId = animalVacination.ShotId;
+
             db.AnimalShots.InsertOnSubmit(newShot);
             db.SubmitChanges();
         }
