@@ -160,19 +160,56 @@ namespace HumaneSociety
             return employeeWithUserName == null;
         }
 
+        internal static void RemoveEmployee(Employee employee)
+        {
+            if (employee == null)
+            {
+                throw new NotImplementedException("employee doesn't exist!");
+            }
+            else
+            {
+                db.Employees.DeleteOnSubmit(employee);
+                db.SubmitChanges();
+            }
+        }
 
         //// TODO Items: ////
 
         // TODO: Allow any of the CRUD operations to occur here
         internal static void RunEmployeeQueries(Employee employee, string crudOperation)
         {
-            throw new NotImplementedException();
+            Console.WriteLine("What would you like to do?\n1)Create new Employee\n2)Retrieve existing employee\n3)Update employee\n4)Delete employee");
+            int input = Convert.ToInt32(Console.ReadLine());
+            switch (input)
+            {
+                case 1:
+                    UserEmployee userEmployee = new UserEmployee();
+                    userEmployee.CreateNewEmployee();
+                    break;
+
+                case 2:
+                    RetrieveEmployeeUser();
+                    break;
+
+                case 3:
+                    UserEmployee userEmployee1 = new UserEmployee();
+                    userEmployee1.UpdateEmployeeInfo();
+                    break;
+
+                case 4:
+                    RemoveEmployee(employee);
+                    break;
+
+                default:
+                    UserInterface.DisplayUserOptions("Input not accepted please try again");
+                    break;
+            }
         }
 
-        // TODO: Animal CRUD Operations
+        // DONE: Animal CRUD Operations
         internal static void AddAnimal(Animal animal)
         {
-            //Animal animalFromDb = db.Animals.Where(a => a.AnimalId == animal.AnimalId).FirstOrDefault();
+            Animal animalFromDb = db.Animals.Where(a => a.AnimalId == animal.AnimalId).FirstOrDefault();
 
             //animalFromDb.CategoryId = animal.CategoryId;
             if (animal == null)
@@ -184,8 +221,6 @@ namespace HumaneSociety
                 db.Animals.InsertOnSubmit(animal);
                 db.SubmitChanges();
             }
-
-            ////throw new NotImplementedException();
         }
 
         internal static Animal GetAnimalByID(int id)
@@ -204,7 +239,23 @@ namespace HumaneSociety
 
         internal static void UpdateAnimal(int animalId, Dictionary<int, string> updates)
         {
-            throw new NotImplementedException();
+            Animal animal = db.Animals.Where(a => a.AnimalId == animalId).FirstOrDefault();
+            if (animal == null)
+            {
+                throw new NotImplementedException();
+            }
+            else
+            {
+                foreach (KeyValuePair<int, string> update in updates)
+                {
+                    if (update.Key == 1 || update.Key == 2 || update.Key == 3 || update.Key == 4 || update.Key == 5 || update.Key == 6 || update.Key == 7)
+                    {
+                        animal.Category.Name = update.Value;
+                    }
+                }
+
+                db.SubmitChanges();
+            }
         }
 
         internal static void RemoveAnimal(Animal animal)
@@ -226,12 +277,12 @@ namespace HumaneSociety
             throw new NotImplementedException();
         }
 
-        // TODO: Misc Animal Things
+        // DONE: Misc Animal Things
         internal static int GetCategoryId(string categoryName)
         {
             if (categoryName == null)
             {
-                throw new NotImplementedException();
+                throw new System.ArgumentException("Not a valid category");
             }
             else
             {
@@ -269,9 +320,23 @@ namespace HumaneSociety
         }
 
         // TODO: Adoption CRUD Operations
-        internal static void Adopt(Animal animal, Client client)
+        internal static void Adopt(Animal animal, Client client)//specify from database that client is adopting an animal
         {
-            throw new NotImplementedException();
+            if (animal == null)
+            {
+                throw new System.ArgumentException("Animal ID or animal is not valid");
+            }
+            else
+            {
+                Adoption adoption = new Adoption();
+                adoption.ClientId = client.ClientId;
+                adoption.AnimalId = animal.AnimalId;
+                adoption.ApprovalStatus = "Pending";
+                adoption.AdoptionFee = 75;
+                adoption.PaymentCollected = false;
+                db.Adoptions.InsertOnSubmit(adoption);
+                db.SubmitChanges();
+            }
         }
 
         internal static IQueryable<Adoption> GetPendingAdoptions()
@@ -292,12 +357,27 @@ namespace HumaneSociety
         // TODO: Shots Stuff
         internal static IQueryable<AnimalShot> GetShots(Animal animal)
         {
-            throw new NotImplementedException();
+            var shots = db.AnimalShots.Where(a => a.AnimalId == animal.AnimalId);
+            return shots;
         }
 
         internal static void UpdateShot(string shotName, Animal animal)
         {
-            throw new NotImplementedException();
+            AnimalShot newShot = new AnimalShot();
+            var animalVacination = db.Shots.Where(s => s.Name == shotName).FirstOrDefault();
+            if (animalVacination == null)
+            {
+                Console.WriteLine(“That shot does not exist”);
+                Shot shot = new Shot() { Name = shotName };
+                db.Shots.InsertOnSubmit(shot);
+                db.SubmitChanges();
+                animalVacination = db.Shots.Where(s => s.Name == shotName).FirstOrDefault();
+            }
+            newShot.AnimalId = animal.AnimalId;
+            newShot.DateReceived = DateTime.Now;
+            newShot.ShotId = animalVacination.ShotId;
+            db.AnimalShots.InsertOnSubmit(newShot);
+            db.SubmitChanges();
         }
     }
 }
